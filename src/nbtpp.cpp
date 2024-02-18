@@ -245,37 +245,27 @@ namespace nbt {
         strm.zalloc = Z_NULL;
         strm.zfree = Z_NULL;
 
-        // bool done = false;
+        bool done = false;
 
         if (inflateInit2(&strm, (16 + MAX_WBITS)) != Z_OK)
             throw std::runtime_error(std::format("Failed to create a zlib stream for file \"{}\"", path));
 
-        // std::string uncomp;
+        std::string uncomp;
 
-        // while (!done) {
-        //     auto avail = std::min(strm.avail_in, 1024u * 16u);
-        //     auto prevSize = uncomp.size();
-        //     uncomp.resize(prevSize + avail);
+        while (!done) {
+            auto avail = std::min(strm.avail_in, 1024u * 16u);
+            auto prevSize = uncomp.size();
+            uncomp.resize(prevSize + avail);
 
-        //     strm.next_out = (Bytef*)(uncomp.data() + prevSize);
-        //     strm.avail_out = avail;
+            strm.next_out = (Bytef*)(uncomp.data() + prevSize);
+            strm.avail_out = avail;
 
-        //     auto code = inflate(&strm, Z_SYNC_FLUSH);
-        //     if (code == Z_STREAM_END)
-        //         done = true;
-        //     else if (code != Z_OK)
-        //         throw std::runtime_error("Zlib error while decompressing");
-        // }
-
-        auto uncomp = new char[len];
-        strm.next_out = uncomp;
-        strm.avail_out = len;
-        
-        auto code = inflate(&strm, Z_SYNC_FLUSH);
-        if (code != Z_OK && code != Z_STREAM_END)
-            throw std::runtime_error(std::format("Zlib error {} while decompressing", code));
-        
-
+            auto code = inflate(&strm, Z_SYNC_FLUSH);
+            if (code == Z_STREAM_END)
+                done = true;
+            else if (code != Z_OK)
+                throw std::runtime_error("Zlib error while decompressing");
+        }
 
         inflateEnd(&strm);
 
