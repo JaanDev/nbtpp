@@ -225,9 +225,8 @@ namespace nbt {
     CompoundValue loadFromCompressedFile(const std::string& path) {
 #ifdef nbtpp_zlib
         std::ifstream fileStream(path, std::ios::binary);
-        if (!fileStream) {
-            throw std::runtime_error(std::format("Failed to open file \"{}\"", path));
-        }
+        if (!fileStream)
+            throw std::runtime_error("Failed to open input file");
 
         auto beg = fileStream.tellg();
         fileStream.seekg(0, std::ios::end);
@@ -238,22 +237,21 @@ namespace nbt {
         fileStream.read(source.get(), len);
         fileStream.close();
 
-        z_stream strm;
+        z_stream strm {};
         strm.next_in = (Bytef*)source.get();
         strm.avail_in = len;
-        strm.total_out = 0;
         strm.zalloc = Z_NULL;
         strm.zfree = Z_NULL;
 
         bool done = false;
 
         if (inflateInit2(&strm, (16 + MAX_WBITS)) != Z_OK)
-            throw std::runtime_error(std::format("Failed to create a zlib stream for file \"{}\"", path));
+            throw std::runtime_error("Failed to create a zlib stream");
 
         std::string uncomp;
 
         while (!done) {
-            auto avail = std::min(strm.avail_in, 1024u * 16u);
+            auto avail = std::min(strm.avail_in, 1024u * 8u);
             auto prevSize = uncomp.size();
             uncomp.resize(prevSize + avail);
 
@@ -264,15 +262,14 @@ namespace nbt {
             if (code == Z_STREAM_END)
                 done = true;
             else if (code != Z_OK)
-                throw std::runtime_error("Zlib error while decompressing");
+                throw std::runtime_error(std::format("Zlib error while decompressing (code {})", code));
         }
 
         inflateEnd(&strm);
 
         return loadFromBytes({(uint8_t*)uncomp.data(), uncomp.size()});
 #else
-        std::println("Compile nbtpp with zlib!");
-        return CompoundValue();
+        throw std::runtime_error("Compile nbtpp with zlib!");
 #endif
     }
 
@@ -293,9 +290,43 @@ namespace nbt {
 
     void saveToCompressedFile(const std::string& path, Value* val) {
 #ifdef nbtpp_zlib
-        //
+        auto f = std::ofstream(path, std::ios::binary | std::ios::trunc);
+        if (!f) {
+            throw std::runtime_error("Failed to open output file for saving");
+        }
+
+        auto w = StreamWriter();
+        w.writeRaw({0x0A, 0x00, 0x00}); // root compound tag which is not closed for some reason
+        val->serialize(w);
+        const auto& bytes = w.getBytes();
+
+        auto srclen = bytes.size();
+        auto dstlen = compressBound(srclen);
+
+        auto dst = std::make_unique<char[]>(dstlen);
+        if (!dst)
+            throw std::runtime_error("Failed to create an output buffer");
+
+        z_stream strm {};
+        strm.next_in = (Bytef*)bytes.data();
+        strm.avail_in = bytes.size();
+        strm.next_out = (Bytef*)dst.get();
+        strm.avail_out = dstlen;
+        strm.zalloc = Z_NULL;
+        strm.zfree = Z_NULL;
+
+        if (deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 31, 8, Z_DEFAULT_STRATEGY) != Z_OK) {
+            throw std::runtime_error("Failed to create a zlib stream");
+        }
+
+        deflate(&strm, Z_FINISH);
+
+        f.write(dst.get(), strm.total_out);
+        f.close();
+
+        deflateEnd(&strm);
 #else
-        std::println("Compile nbtpp with zlib!");
+        throw std::runtime_error("Compile nbtpp with zlib!");
 #endif
     }
 } // namespace nbt

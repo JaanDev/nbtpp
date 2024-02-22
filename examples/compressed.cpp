@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
             std::println("Processing file {}", fileName);
             auto value = loadFromCompressedFile(fileName);
             saveToFile(fileName + "_2", &value);
+            saveToCompressedFile(fileName + "_3", &value);
         } catch (const std::runtime_error& e) {
             std::println("Failed to process file {}: {}", fileName, e.what());
         }

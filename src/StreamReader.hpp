@@ -4,6 +4,7 @@
 #include <bit>
 #include <span>
 #include <string>
+#include <algorithm>
 
 namespace nbt {
     class StreamReader {

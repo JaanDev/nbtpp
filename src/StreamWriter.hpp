@@ -4,6 +4,7 @@
 #include <string>
 #include <bit>
 #include <span>
+#include <algorithm>
 
 namespace nbt {
     class StreamWriter {
