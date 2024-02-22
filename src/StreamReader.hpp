@@ -10,7 +10,7 @@ namespace nbt {
     class StreamReader {
       public:
         StreamReader(std::span<uint8_t> data);
-        
+
         template <typename T>
         StreamReader& operator>>(T& other) {
             constexpr auto size = sizeof(other);

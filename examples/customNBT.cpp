@@ -17,7 +17,8 @@ int main() {
         std::make_shared<SimpleValue>("About a girl"),
     });
     items["songs"] = list;
-    items["some bytes"] = std::make_shared<ArrayValue<char>>(std::initializer_list<char> {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
+    items["some bytes"] =
+        std::make_shared<ArrayValue<char>>(std::initializer_list<char> {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66});
 
     auto newVal = std::make_shared<CompoundValue>();
     items["another one"] = newVal;
@@ -28,7 +29,11 @@ int main() {
     newItems["a float"] = std::make_shared<SimpleValue>(123.45f);
     newItems["a string"] = std::make_shared<SimpleValue>("hi");
 
-    saveToFile("test.nbt", &value);
+    try {
+        saveToFile("test.nbt", &value);
+    } catch (const std::runtime_error& e) {
+        std::println("Failed to write file ({})", e.what());
+    }
 
     return 0;
 }

@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
         try {
             auto newName = std::string(fileName) + "_reexported";
             std::println("Re-exporting file {} to {}", fileName, newName);
-            
+
             auto value = loadFromFile(fileName);
             saveToFile(newName, &value);
         } catch (const std::runtime_error& e) {

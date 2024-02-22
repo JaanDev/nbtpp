@@ -329,4 +329,11 @@ namespace nbt {
         throw std::runtime_error("Compile nbtpp with zlib!");
 #endif
     }
+
+    std::vector<uint8_t> saveToBytes(Value* val) {
+        auto w = StreamWriter();
+        w.writeRaw({0x0A, 0x00, 0x00}); // root compound tag which is not closed for some reason
+        val->serialize(w);
+        return w.getBytes();
+    }
 } // namespace nbt

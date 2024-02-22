@@ -155,4 +155,5 @@ namespace nbt {
 
     void saveToFile(const std::string& path, Value* val);
     void saveToCompressedFile(const std::string& path, Value* val);
+    std::vector<uint8_t> saveToBytes(Value* val);
 } // namespace nbt
