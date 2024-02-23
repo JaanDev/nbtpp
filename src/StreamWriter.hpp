@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <bit>
 #include <span>
 #include <algorithm>
 

@@ -1,6 +1,8 @@
 #include "nbtpp.hpp"
 
 #include <fstream>
+#include <format>
+#include <iostream>
 #ifdef nbtpp_zlib
 #include <zlib.h>
 #endif
@@ -33,7 +35,7 @@ namespace nbt {
             writer.writeStr(std::get<std::string>(m_value));
         } break;
         default: {
-            std::println("[nbtpp] Invalid type {} for SimpleValue!", static_cast<int>(id));
+            std::cerr << std::format("[nbtpp] Invalid type {} for SimpleValue!", static_cast<int>(id)) << std::endl;
         } break;
         }
     }
@@ -62,7 +64,7 @@ namespace nbt {
             m_value = reader.readStr();
         } break;
         default: {
-            std::println("[nbtpp] Invalid type {} for SimpleValue!", static_cast<int>(id));
+            std::cerr << std::format("[nbtpp] Invalid type {} for SimpleValue!", static_cast<int>(id)) << std::endl;
         } break;
         }
     }
@@ -83,7 +85,7 @@ namespace nbt {
         } else if (std::holds_alternative<std::string>(m_value)) {
             return TagID::String;
         } else {
-            std::println("[nbtpp] Unknown type of a SimpleValue!");
+            std::cerr << std::format("[nbtpp] Unknown type of a SimpleValue!") << std::endl;
             return TagID::None;
         }
     }
@@ -97,8 +99,9 @@ namespace nbt {
             if (valID == m_itemsID) {
                 val->serialize(writer);
             } else {
-                std::println("[nbtpp] Failed to serialize a value (id {}) of the ListValue (should be {})",
-                             static_cast<int>(valID), static_cast<int>(m_itemsID));
+                std::cerr << std::format("[nbtpp] Failed to serialize a value (id {}) of the ListValue (should be {})",
+                                         static_cast<int>(valID), static_cast<int>(m_itemsID))
+                          << std::endl;
             }
         }
     }
@@ -178,7 +181,7 @@ namespace nbt {
             return val;
         } break;
         default: {
-            std::println("[nbtpp] Invalid tag {} in valueForID", static_cast<int>(id));
+            std::cerr << std::format("[nbtpp] Invalid tag {} in valueForID", static_cast<int>(id)) << std::endl;
             return nullptr;
         } break;
         }

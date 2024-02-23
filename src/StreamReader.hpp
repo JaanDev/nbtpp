@@ -1,10 +1,9 @@
 #pragma once
 #include <cstdint>
-#include <cstddef>
-#include <bit>
 #include <span>
-#include <string>
 #include <algorithm>
+#include <iostream>
+#include <format>
 
 namespace nbt {
     class StreamReader {
@@ -15,7 +14,8 @@ namespace nbt {
         StreamReader& operator>>(T& other) {
             constexpr auto size = sizeof(other);
             if (m_len < size) {
-                std::println("[nbtpp] Failed to read {} bytes from the buffer (only {} left)!", size, m_len);
+                std::cerr << std::format("[nbtpp] Failed to read {} bytes from the buffer (only {} left)!", size, m_len)
+                          << std::endl;
                 return *this;
             }
 

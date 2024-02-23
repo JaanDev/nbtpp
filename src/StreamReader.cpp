@@ -1,6 +1,6 @@
 #include "StreamReader.hpp"
 
-#include <print>
+#include <cstring>
 
 namespace nbt {
     StreamReader::StreamReader(std::span<uint8_t> data) : m_data(data.data()), m_len(data.size()) {}
@@ -8,7 +8,7 @@ namespace nbt {
     void StreamReader::read(std::span<uint8_t> data) {
         auto len = data.size();
         if (m_len < len) {
-            std::println("[nbtpp] Failed to read {} bytes from the buffer (only {} left)!", len, m_len);
+            std::cerr << std::format("[nbtpp] Failed to read {} bytes from the buffer (only {} left)!", len, m_len) << std::endl;
             return;
         }
 
@@ -34,7 +34,7 @@ namespace nbt {
 
     void StreamReader::skip(size_t len) {
         if (len > m_len) {
-            std::println("[nbtpp] Failed to skip {} bytes (only {} left)!", len, m_len);
+            std::cerr << std::format("[nbtpp] Failed to skip {} bytes (only {} left)!", len, m_len) << std::endl;
             return;
         }
 

@@ -15,12 +15,12 @@ int main(int argc, char** argv) {
 
         try {
             auto newName = std::string(fileName) + "_reexported";
-            std::println("Re-exporting file {} to {}", fileName, newName);
+            std::cout << std::format("Re-exporting file {} to {}", fileName, newName) << std::endl;
 
             auto value = loadFromFile(fileName);
             saveToFile(newName, &value);
         } catch (const std::runtime_error& e) {
-            std::println("Failed to process file {}: {}", fileName, e.what());
+            std::cerr << std::format("Failed to process file {}: {}", fileName, e.what()) << std::endl;
         }
     }
     return 0;

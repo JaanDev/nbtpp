@@ -32,7 +32,7 @@ int main() {
     try {
         saveToFile("test.nbt", &value);
     } catch (const std::runtime_error& e) {
-        std::println("Failed to write file ({})", e.what());
+        std::cerr << std::format("Failed to write file ({})", e.what()) << std::endl;
     }
 
     return 0;

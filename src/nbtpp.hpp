@@ -4,7 +4,6 @@
 #include <string>
 #include <array>
 #include <memory>
-#include <print>
 
 #include "StreamReader.hpp"
 #include "StreamWriter.hpp"
@@ -49,6 +48,15 @@ namespace nbt {
         inline const SimpleType& get() const { return m_value; }
         inline void set(const SimpleType& val) { m_value = val; }
 
+        template <typename T>
+        T as() {
+            if (std::holds_alternative<T>(m_value)) {
+                return std::get<T>(m_value);
+            } else {
+                return T();
+            }
+        }
+
       protected:
         SimpleType m_value;
     };
@@ -64,6 +72,8 @@ namespace nbt {
 
         inline std::vector<std::shared_ptr<Value>>& getItems() { return m_items; }
         void appendValues(std::initializer_list<std::shared_ptr<Value>> values);
+
+        inline size_t length() const { return m_items.size(); }
 
       protected:
         std::vector<std::shared_ptr<Value>> m_items;
@@ -84,6 +94,7 @@ namespace nbt {
         virtual TagID getID() const override;
 
         inline std::vector<T>& getItems() { return m_items; }
+        inline size_t length() const { return m_items.size(); }
 
       protected:
         std::vector<T> m_items;
@@ -98,6 +109,7 @@ namespace nbt {
         virtual TagID getID() const override { return TagID::Compound; }
 
         inline CompoundValueType& getItems() { return m_items; }
+        inline bool hasKey(const std::string& key) { return m_items.contains(key); }
 
       protected:
         CompoundValueType m_items;
