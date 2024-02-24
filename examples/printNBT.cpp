@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
                           << std::endl;
                 depth++;
                 for (const auto x : vals) {
-                    prettyPrint(x.get(), depth);
+                    prettyPrint(x, depth);
                 }
                 depth--;
             } break;
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
                 for (const auto& [name, x] : vals) {
                     printIndent(depth);
                     std::cout << std::format("+ name: {}", name) << std::endl;
-                    prettyPrint(x.get(), depth);
+                    prettyPrint(x, depth);
                 }
                 depth--;
             } break;
@@ -156,5 +156,6 @@ int main(int argc, char** argv) {
             std::cerr << std::format("Failed to process file {}: {}", fileName, e.what()) << std::endl;
         }
     }
+
     return 0;
 }

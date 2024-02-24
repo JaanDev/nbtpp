@@ -92,6 +92,15 @@ namespace nbt {
 
     ListValue::ListValue(TagID itemsID) : m_itemsID(itemsID) {}
 
+    ListValue::ListValue(TagID itemsID, std::initializer_list<Value*> items) : m_itemsID(itemsID), m_items(items) {}
+
+    ListValue::~ListValue() {
+        for (auto val : m_items) {
+            if (val)
+                delete val;
+        }
+    }
+
     void ListValue::serialize(StreamWriter& writer) const {
         writer << m_itemsID << static_cast<unsigned int>(m_items.size());
         for (const auto& val : m_items) {
@@ -116,8 +125,15 @@ namespace nbt {
         }
     }
 
-    void ListValue::appendValues(std::initializer_list<std::shared_ptr<Value>> values) {
+    void ListValue::appendValues(std::initializer_list<Value*> values) {
         m_items.insert(m_items.end(), values);
+    }
+
+    CompoundValue::~CompoundValue() {
+        for (auto [_, val] : m_items) {
+            if (val)
+                delete val;
+        }
     }
 
     void CompoundValue::serialize(StreamWriter& writer) const {
@@ -142,7 +158,7 @@ namespace nbt {
         }
     }
 
-    std::shared_ptr<Value> valueForID(StreamReader& reader, TagID id) {
+    Value* valueForID(StreamReader& reader, TagID id) {
         switch (id) {
         case TagID::Byte:
         case TagID::Short:
@@ -151,32 +167,32 @@ namespace nbt {
         case TagID::Float:
         case TagID::Double:
         case TagID::String: {
-            auto val = std::make_shared<SimpleValue>();
+            auto val = new SimpleValue();
             val->deserialize(reader, id);
             return val;
         } break;
         case TagID::List: {
-            auto val = std::make_shared<ListValue>(TagID::None);
+            auto val = new ListValue(TagID::None);
             val->deserialize(reader, id);
             return val;
         } break;
         case TagID::Compound: {
-            auto val = std::make_shared<CompoundValue>();
+            auto val = new CompoundValue();
             val->deserialize(reader, id);
             return val;
         } break;
         case TagID::IntArray: {
-            auto val = std::make_shared<ArrayValue<int>>();
+            auto val = new ArrayValue<int>();
             val->deserialize(reader, id);
             return val;
         } break;
         case TagID::ByteArray: {
-            auto val = std::make_shared<ArrayValue<char>>();
+            auto val = new ArrayValue<char>();
             val->deserialize(reader, id);
             return val;
         } break;
         case TagID::LongArray: {
-            auto val = std::make_shared<ArrayValue<long long>>();
+            auto val = new ArrayValue<long long>();
             val->deserialize(reader, id);
             return val;
         } break;
@@ -338,5 +354,27 @@ namespace nbt {
         w.writeRaw({0x0A, 0x00, 0x00}); // root compound tag which is not closed for some reason
         val->serialize(w);
         return w.getBytes();
+    }
+
+    SimpleValue* Value::asSimple() {
+        auto tag = getID();
+        if (tag >= TagID::Byte && tag <= TagID::Double || tag == TagID::String)
+            return (SimpleValue*)this;
+        else
+            throw new std::runtime_error("Failed to interpret as SimpleValue");
+    }
+
+    ListValue* Value::asList() {
+        if (getID() == TagID::List)
+            return (ListValue*)this;
+        else
+            throw new std::runtime_error("Failed to interpret as ListValue");
+    }
+
+    CompoundValue* Value::asCompound() {
+        if (getID() == TagID::Compound)
+            return (CompoundValue*)this;
+        else
+            throw new std::runtime_error("Failed to interpret as CompoundValue");
     }
 } // namespace nbt

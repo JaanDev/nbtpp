@@ -26,8 +26,28 @@ namespace nbt {
         None = 0xFF // custom
     };
 
+    class SimpleValue;
+    class ListValue;
+    template <typename T>
+    class ArrayValue;
+    class CompoundValue;
+
     class Value {
       public:
+        virtual ~Value() {}
+
+        SimpleValue* asSimple();
+        ListValue* asList();
+        template <typename T>
+        ArrayValue<T>* asArray() {
+            auto tag = getID();
+            if (tag == TagID::ByteArray || tag == TagID::IntArray || tag == TagID::LongArray)
+                return (ArrayValue<T>*)this;
+            else
+                throw new std::runtime_error("Failed to interpret as ArrayValue");
+        }
+        CompoundValue* asCompound();
+
         virtual void serialize(StreamWriter& writer) const = 0;
         virtual void deserialize(StreamReader& reader, TagID id) = 0;
 
@@ -64,19 +84,21 @@ namespace nbt {
     class ListValue : public Value {
       public:
         ListValue(TagID itemsID);
+        ListValue(TagID itemsID, std::initializer_list<Value*> items);
+        ~ListValue() override;
 
         virtual void serialize(StreamWriter& writer) const override;
         virtual void deserialize(StreamReader& reader, TagID id) override;
         virtual TagID getID() const override { return TagID::List; }
         inline TagID getItemsID() const { return m_itemsID; }
 
-        inline std::vector<std::shared_ptr<Value>>& getItems() { return m_items; }
-        void appendValues(std::initializer_list<std::shared_ptr<Value>> values);
+        inline std::vector<Value*>& getItems() { return m_items; }
+        void appendValues(std::initializer_list<Value*> values);
 
         inline size_t length() const { return m_items.size(); }
 
       protected:
-        std::vector<std::shared_ptr<Value>> m_items;
+        std::vector<Value*> m_items;
         TagID m_itemsID;
     };
 
@@ -102,7 +124,9 @@ namespace nbt {
 
     class CompoundValue : public Value {
       public:
-        using CompoundValueType = std::unordered_map<std::string, std::shared_ptr<Value>>;
+        ~CompoundValue() override;
+
+        using CompoundValueType = std::unordered_map<std::string, Value*>;
 
         virtual void serialize(StreamWriter& writer) const override;
         virtual void deserialize(StreamReader& reader, TagID id) override;
@@ -159,7 +183,7 @@ namespace nbt {
         }
     }
 
-    std::shared_ptr<Value> valueForID(StreamReader& reader, TagID id);
+    Value* valueForID(StreamReader& reader, TagID id);
 
     CompoundValue loadFromBytes(std::span<uint8_t> bytes);
     CompoundValue loadFromFile(const std::string& path);
